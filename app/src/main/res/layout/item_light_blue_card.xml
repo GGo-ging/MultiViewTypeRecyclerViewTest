@@ -101,6 +101,17 @@
                 app:layout_constraintBottom_toTopOf="@+id/tv_balance"
                 app:layout_constraintStart_toStartOf="@+id/tv_balance" />
 
+            <TextView
+                android:id="@+id/tv_card_manager"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="타입"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="@+id/tv_balance"
+                app:layout_constraintEnd_toEndOf="@+id/tv_card_period" />
+
 
 
 

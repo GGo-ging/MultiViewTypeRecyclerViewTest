@@ -1,9 +1,8 @@
-package com.example.flowerrecyclerview.data
+package com.example.multiviewtyperecyclerview.data.database
 
-import com.example.multiviewtyperecyclerview.data.UserEntity
-import com.example.multiviewtyperecyclerview.presentation.MultiViewEnum
+import com.example.multiviewtyperecyclerview.presentation.base.MultiViewEnum
 
-fun cardList() : List<UserEntity> {
+fun userList() : List<UserEntity> {
     return listOf(
         UserEntity(
             "ggilggil monster yongchan",

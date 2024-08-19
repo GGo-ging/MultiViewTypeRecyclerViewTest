@@ -1,33 +1,37 @@
-package com.example.multiviewtyperecyclerview.presentation
+package com.example.multiviewtyperecyclerview.presentation.base
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.multiviewtyperecyclerview.data.UserEntity
+import com.example.multiviewtyperecyclerview.data.database.UserEntity
 import com.example.multiviewtyperecyclerview.databinding.ItemBlueCardBinding
+import com.example.multiviewtyperecyclerview.databinding.ItemDefaultBinding
 import com.example.multiviewtyperecyclerview.databinding.ItemLightBlueCardBinding
 import com.example.multiviewtyperecyclerview.databinding.ItemOrangeCardBinding
-import com.example.multiviewtyperecyclerview.databinding.ItemRedCardBinding
-import java.lang.IllegalArgumentException
 
+
+//adapter : 아이템 단위로 view를 생성하여 recyclerView에 바인딩 시키는 역할
 //클릭 이벤트 처리 람다함수 파라메터로 사용
 class MultiCardAdapter(private val onClick: (UserEntity) -> Unit) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-    var cardList = listOf<UserEntity>()
+    var userList = listOf<UserEntity>()
 
+    //TODO
     //viewholder 생성
     //ViewHolder에 연결된 view 생성, 초기화
     //multi view type 처리
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         //multi view type을 구현하는 item layout 연결
-        return when (viewType) {
-            MultiViewEnum.BLUE.viewType -> {
+        //enum ordinal값 사용 보단 enum의 entries(enum의 list를 뽑아서 return)를 뽑아서 사용
+        val muiltiViewType = MultiViewEnum.entries.find { it.viewType == viewType }
+        return when (muiltiViewType) {
+            MultiViewEnum.BLUE -> {
                 val binding =
                     ItemBlueCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
                 BlueTypeViewHolder(binding)
             }
 
-            MultiViewEnum.LIGHTBLUE.viewType -> {
+            MultiViewEnum.LIGHTBLUE -> {
                 val binding =
                     ItemLightBlueCardBinding.inflate(
                         LayoutInflater.from(parent.context),
@@ -37,7 +41,7 @@ class MultiCardAdapter(private val onClick: (UserEntity) -> Unit) :
                 LightBlueTypeViewHolder(binding)
             }
 
-            MultiViewEnum.ORANGE.viewType -> {
+            MultiViewEnum.ORANGE -> {
                 val binding =
                     ItemOrangeCardBinding.inflate(
                         LayoutInflater.from(parent.context),
@@ -47,30 +51,33 @@ class MultiCardAdapter(private val onClick: (UserEntity) -> Unit) :
                 OrangeTypeViewHolder(binding)
             }
 
-            MultiViewEnum.RED.viewType -> {
+            /*
+            * TODO   else -> throw IllegalArgumentException("Invalid view type") 하지 말것
+            * */
+            else -> {
                 val binding =
-                    ItemRedCardBinding.inflate(
+                    ItemDefaultBinding.inflate(
                         LayoutInflater.from(parent.context),
                         parent,
                         false
                     )
-                RedTypeViewHolder(binding)
+                UnknownViewHolder(binding)
             }
-
-            else -> throw IllegalArgumentException("Invalid view type")
         }
     }
 
+    //전체 아이템 개수 리턴
     override fun getItemCount(): Int {
-        return cardList.size
+        return userList.size
     }
 
     //viewHolder와 data 바인딩
+    //ViewHolder와 position을 인자로 받아서 holder의 데이터 변경 -> 스크롤 해서 데이터 바인딩이 필요한 만큼 호출
     //클릭 이벤트 처리
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val currentItem = cardList[position]
-        when (holder.itemViewType) {
-            MultiViewEnum.BLUE.viewType -> {
+        val currentItem = userList[position]
+        when (holder) {
+            is BlueTypeViewHolder -> {
                 val blueHolder = holder as BlueTypeViewHolder
                 blueHolder.bind(currentItem)
 
@@ -79,7 +86,7 @@ class MultiCardAdapter(private val onClick: (UserEntity) -> Unit) :
                 }
             }
 
-            MultiViewEnum.LIGHTBLUE.viewType -> {
+            is LightBlueTypeViewHolder -> {
                 val lightBlueHolder = holder as LightBlueTypeViewHolder
                 lightBlueHolder.bind(currentItem)
 
@@ -88,17 +95,8 @@ class MultiCardAdapter(private val onClick: (UserEntity) -> Unit) :
                 }
             }
 
-            MultiViewEnum.ORANGE.viewType -> {
+            is OrangeTypeViewHolder -> {
                 val orangeHolder = holder as OrangeTypeViewHolder
-                orangeHolder.bind(currentItem)
-
-                holder.itemView.setOnClickListener {
-                    onClick(currentItem)
-                }
-            }
-
-            MultiViewEnum.RED.viewType -> {
-                val orangeHolder = holder as RedTypeViewHolder
                 orangeHolder.bind(currentItem)
 
                 holder.itemView.setOnClickListener {
@@ -111,65 +109,59 @@ class MultiCardAdapter(private val onClick: (UserEntity) -> Unit) :
     //아이템의 위치(position)에 따라 어떤 뷰 타입을 가져야하는지 결정
     //position 즉 아이템의 위치에 접근하여 아이템의 뷰타입 결정
     override fun getItemViewType(position: Int): Int {
-        return when (position) {
-            0 -> MultiViewEnum.BLUE.viewType
-            1 -> MultiViewEnum.LIGHTBLUE.viewType
-            2 -> MultiViewEnum.ORANGE.viewType
-            3 -> MultiViewEnum.RED.viewType
-            else -> throw IllegalArgumentException("Invalid position")
-        }
+        return userList[position].cardType.viewType
     }
 
+
+    //VIEWHOLDER : 화면에 표시될 아이템 뷰를 저장하는 객체
     //item layout의 ui값 뿌려주기
-    inner class BlueTypeViewHolder(private val binding: ItemBlueCardBinding) :
+    /*
+    * TODO : 꼭말하기
+    *  inner Class는 내부 클래스로 ViewHolder를 선언하면 묵시적으로 Adapter 클래스를 참조하는것
+    * inner class로 선언시 내부에 숨겨진 Outer Class(Adapter Class)를 보관하게 되고, 참조를 해제하지 못하는 경우가 생겨서 메모리 누수생김 -> 프로파일링 시 찾기 쉽지 않음
+    * 코틀린은 Nested Class가 기본임
+    * */
+    class BlueTypeViewHolder(private val binding: ItemBlueCardBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(card: UserEntity) {
+        fun bind(user: UserEntity) {
             binding.apply {
-                tvUserName.text = card.name
-                tvCardNum.text = card.cardNumber
-                tvCardType.text = card.cardType.toString()
-                tvCardPeriod.text = card.cardPeriod
-                tvBalance.text = card.balance.toString()
+                tvUserName.text = user.name
+                tvCardNum.text = user.cardNumber
+                tvCardPeriod.text = user.cardPeriod
+                tvBalance.text = user.balance.toString()
             }
         }
     }
 
-    inner class LightBlueTypeViewHolder(private val binding: ItemLightBlueCardBinding) :
+    class LightBlueTypeViewHolder(private val binding: ItemLightBlueCardBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(card: UserEntity) {
+        fun bind(user: UserEntity) {
             binding.apply {
-                tvUserName.text = card.name
-                tvCardNum.text = card.cardNumber
-                tvCardType.text = card.cardType.toString()
-                tvCardPeriod.text = card.cardPeriod
-                tvBalance.text = card.balance.toString()
+                tvUserName.text = user.name
+                tvCardNum.text = user.cardNumber
+                tvCardPeriod.text = user.cardPeriod
+                tvBalance.text = user.balance.toString()
             }
         }
     }
 
-    inner class OrangeTypeViewHolder(private val binding: ItemOrangeCardBinding) :
+    class OrangeTypeViewHolder(private val binding: ItemOrangeCardBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(card: UserEntity) {
+        fun bind(user: UserEntity) {
             binding.apply {
-                tvUserName.text = card.name
-                tvCardNum.text = card.cardNumber
-                tvCardType.text = card.cardType.toString()
-                tvCardPeriod.text = card.cardPeriod
-                tvBalance.text = card.balance.toString()
+                tvUserName.text = user.name
+                tvCardNum.text = user.cardNumber
+                tvCardPeriod.text = user.cardPeriod
+                tvBalance.text = user.balance.toString()
             }
         }
     }
 
-    inner class RedTypeViewHolder(private val binding: ItemRedCardBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        fun bind(card: UserEntity) {
-            binding.apply {
-                tvUserName.text = card.name
-                tvCardNum.text = card.cardNumber
-                tvCardType.text = card.cardType.toString()
-                tvCardPeriod.text = card.cardPeriod
-                tvBalance.text = card.balance.toString()
-            }
-        }
+    //TODO
+    //Enum외의 data가 왔을 때(server or android 개발자) 대응
+    class UnknownViewHolder(
+        binding: ItemDefaultBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+        fun bind() = Unit
     }
 }

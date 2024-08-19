@@ -1,7 +1,7 @@
-package com.example.multiviewtyperecyclerview.data
+package com.example.multiviewtyperecyclerview.data.database
 
 import android.os.Parcelable
-import com.example.multiviewtyperecyclerview.presentation.MultiViewEnum
+import com.example.multiviewtyperecyclerview.presentation.base.MultiViewEnum
 import kotlinx.android.parcel.Parcelize
 import java.math.BigDecimal
 
